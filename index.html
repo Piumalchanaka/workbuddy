@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WorkBuddy 🐾</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            --bg-slate: #0f172a;
+            --bg-card: #1e293b;
+            --cat-rose: #f472b6;
+            --highlight-yellow: #fbbf24;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-slate);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            color: var(--highlight-yellow);
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Whiskers Widget */
+        .whiskers-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .cat-avatar {
+            font-size: 3rem;
+            background: var(--bg-slate);
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--cat-rose);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+
+        .bounce {
+            transform: scale(1.2) translateY(-10px);
+        }
+
+        button {
+            background-color: var(--cat-rose);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button.outline {
+            background-color: transparent;
+            border: 2px solid var(--cat-rose);
+            color: var(--cat-rose);
+        }
+        
+        .whiskers-message {
+            font-style: italic;
+            color: var(--highlight-yellow);
+            min-height: 48px;
+        }
+
+        /* Departure Banner */
+        #departure-banner {
+            display: none;
+            background-color: var(--cat-rose);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(244, 114, 182, 0.3);
+        }
+        
+        #departure-banner.urgent {
+            background-color: var(--highlight-yellow);
+            color: var(--bg-slate);
+            box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3);
+        }
+
+        .time-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        input[type="time"], input[type="date"], input[type="text"], select {
+            background-color: var(--bg-slate);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1rem;
+            color-scheme: dark;
+        }
+
+        /* Tasks */
+        .task-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .task-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .task-row > * {
+            flex: 1;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-slate);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--highlight-yellow);
+        }
+        
+        .task-item.done {
+            opacity: 0.6;
+            border-left-color: var(--success);
+        }
+
+        .task-item.done .task-title {
+            text-decoration: line-through;
+        }
+
+        .task-info {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .task-time {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .task-actions button {
+            background-color: var(--success);
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+
+        .task-actions .delete-btn {
+            background-color: #ef4444;
+        }
+
+        /* Notifications Setup */
+        .notification-setup {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <h1 style="margin-bottom: 20px; text-align: center;">WorkBuddy 🐾</h1>
+
+    <!-- Departure Banner -->
+    <div id="departure-banner">
+        <div id="banner-text">It's past 5:30 PM! What time are you heading home today?</div>
+        <div class="time-selector" id="departure-form">
+            <input type="time" id="departure-time-input" value="18:00">
+            <button onclick="setDepartureTime()" style="background-color: var(--bg-slate); color: var(--text-main);">Set Time</button>
+        </div>
+    </div>
+
+    <!-- Whiskers Widget -->
+    <div class="card">
+        <div class="whiskers-container">
+            <div class="cat-avatar" id="cat-icon">😸</div>
+            <div>
+                <h2 style="margin-bottom: 5px;">Whiskers</h2>
+                <button onclick="petWhiskers()">Pet Whiskers 🐾</button>
+            </div>
+        </div>
+        <div class="whiskers-message" id="whiskers-msg">
+            "I'm here to keep your tasks organized and your stress low! 🐾"
+        </div>
+    </div>
+
+    <!-- Task Management -->
+    <div class="card">
+        <h2 style="margin-bottom: 15px;">Tasks & Schedule</h2>
+        
+        <div class="task-form">
+            <input type="text" id="task-desc" placeholder="What needs to be done?" required>
+            <div class="task-row">
+                <select id="task-day">
+                    <option value="today">Today</option>
+                    <option value="tomorrow">Tomorrow</option>
+                </select>
+                <input type="time" id="task-time">
+            </div>
+            <button onclick="addTask()">Add Task</button>
+        </div>
+
+        <ul class="task-list" id="task-list">
+            <!-- Tasks rendered here -->
+        </ul>
+    </div>
+
+    <!-- Notifications -->
+    <div class="notification-setup">
+        <p style="margin-bottom: 10px; color: var(--text-muted); font-size: 0.9rem;">
+            Enable notifications to receive gentle reminders for tasks and going home.
+        </p>
+        <button class="outline" onclick="enableNotifications()">Enable iOS Push Notifications</button>
+    </div>
+
+    <script>
+        // --- Core Data & State ---
+        let tasks = JSON.parse(localStorage.getItem('wb_tasks')) || [];
+        
+        // --- Whiskers Logic ---
+        const messages = [
+            "Take a deep breath! Banking can wait 30 seconds while you pet me! 😸",
+            "You're doing great! Don't forget to drink some water. 💧",
+            "Stretch your back! A healthy banker is a happy banker. 🐾",
+            "Remember, the market will still be there tomorrow.",
+            "You are more than your job title. You are my favorite human! ❤️",
+            "Purr... stress is melting away... purr... 🐈",
+            "Time to take a 5-minute break? I think so!"
+        ];
+
+        function petWhiskers() {
+            const icon = document.getElementById('cat-icon');
+            const msgEl = document.getElementById('whiskers-msg');
+            
+            icon.classList.add('bounce');
+            setTimeout(() => icon.classList.remove('bounce'), 300);
+            
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            msgEl.textContent = `Whiskers says: "${randomMsg}"`;
+        }
+
+        // --- Task Management ---
+        function saveTasks() {
+            localStorage.setItem('wb_tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function addTask() {
+            const desc = document.getElementById('task-desc').value.trim();
+            const day = document.getElementById('task-day').value;
+            const time = document.getElementById('task-time').value;
+
+            if (!desc) {
+                alert("Please enter a task description.");
+                return;
+            }
+
+            const now = new Date();
+            let targetDate = new Date();
+            if (day === 'tomorrow') {
+                targetDate.setDate(now.getDate() + 1);
+            }
+            
+            const dateStr = targetDate.toISOString().split('T')[0];
+            
+            tasks.push({
+                id: Date.now().toString(),
+                desc,
+                date: dateStr,
+                time: time || '',
+                done: false,
+                notified: false
+            });
+
+            document.getElementById('task-desc').value = '';
+            document.getElementById('task-time').value = '';
+            saveTasks();
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.done = !task.done;
+                saveTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = '';
+            
+            // Sort by date then time
+            tasks.sort((a, b) => {
+                if (a.date !== b.date) return a.date.localeCompare(b.date);
+                if (!a.time && b.time) return 1;
+                if (a.time && !b.time) return -1;
+                return (a.time || '').localeCompare(b.time || '');
+            });
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.done ? 'done' : ''}`;
+                
+                let displayDay = task.date === todayStr ? 'Today' : 'Tomorrow';
+                if (task.date < todayStr) displayDay = 'Overdue';
+                
+                let timeDisplay = task.time ? `🕒 ${displayDay} - ${task.time}` : `🕒 ${displayDay}`;
+
+                li.innerHTML = `
+                    <div class="task-info">
+                        <span class="task-title">${task.desc}</span>
+                        <span class="task-time">${timeDisplay}</span>
+                    </div>
+                    <div class="task-actions">
+                        <button onclick="toggleTask('${task.id}')" style="background-color: ${task.done ? 'var(--text-muted)' : 'var(--success)'}">
+                            ${task.done ? 'Undo' : 'Done'}
+                        </button>
+                        <button class="delete-btn" onclick="deleteTask('${task.id}')">X</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // --- Time Management & Departure Logic ---
+        function getTodayKey() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function setDepartureTime() {
+            const time = document.getElementById('departure-time-input').value;
+            if (time) {
+                const today = getTodayKey();
+                localStorage.setItem(`wb_departure_${today}`, time);
+                checkTime(); // Re-evaluate immediately
+            }
+        }
+
+        function checkTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const today = getTodayKey();
+            const currentTimeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            
+            // 1. Task Reminders
+            tasks.forEach(task => {
+                if (task.date === today && task.time && !task.done && !task.notified) {
+                    if (currentTimeStr >= task.time) {
+                        sendNotification("Task Reminder 🐾", `It's time for: ${task.desc}`);
+                        task.notified = true;
+                        saveTasks(); // save notified state
+                    }
+                }
+            });
+
+            const banner = document.getElementById('departure-banner');
+            const bannerText = document.getElementById('banner-text');
+            const departureForm = document.getElementById('departure-form');
+            
+            const departureTimeStr = localStorage.getItem(`wb_departure_${today}`);
+
+            // 2. 5:30 PM Logic
+            if (hours > 17 || (hours === 17 && minutes >= 30)) {
+                banner.style.display = 'block';
+                
+                if (!departureTimeStr) {
+                    banner.className = '';
+                    bannerText.textContent = "It's past 5:30 PM! What time are you heading home today?";
+                    departureForm.style.display = 'flex';
+                } else {
+                    departureForm.style.display = 'none';
+                    if (currentTimeStr >= departureTimeStr) {
+                        banner.className = 'urgent';
+                        bannerText.textContent = "Time's up! Spend 2 mins planning tomorrow's tasks, shut down your computer, and head home! 🏠";
+                        
+                        // 3. Overtime hourly notification logic
+                        const lastOvertimeNotif = localStorage.getItem(`wb_overtime_${today}`);
+                        if (lastOvertimeNotif !== hours.toString()) {
+                            sendNotification("Overtime Alert 🚨", "You've worked hard today. Time to wind up for now, go home to your wife, and live your life!");
+                            localStorage.setItem(`wb_overtime_${today}`, hours.toString());
+                        }
+                    } else {
+                        banner.className = '';
+                        bannerText.textContent = `You are heading home at ${departureTimeStr}. Keep wrapping up! 🐾`;
+                    }
+                }
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        // --- Notifications ---
+        async function enableNotifications() {
+            if (!('Notification' in window)) {
+                alert('Push Notifications are not supported in this browser.');
+                return;
+            }
+            const perm = await Notification.requestPermission();
+            if (perm === 'granted') {
+                alert('Notifications enabled successfully! 🐾');
+            } else if (perm === 'denied') {
+                alert('Notifications are disabled. Please enable them in your browser settings.');
+            }
+        }
+
+        function sendNotification(title, body) {
+            if (Notification.permission === 'granted') {
+                new Notification(title, {
+                    body: body,
+                    icon: 'icon.svg'
+                });
+            }
+        }
+
+        // --- Initialization ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => console.log('ServiceWorker registration successful'))
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+
+        renderTasks();
+        checkTime();
+        setInterval(checkTime, 60000); // Check every minute
+    </script>
+</body>
+</html>
